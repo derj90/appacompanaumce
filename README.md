@@ -7,6 +7,8 @@ Plataforma desarrollada con Next.js (App Router), Supabase y TypeScript. Este pr
 ```bash
 pnpm install # o npm install
 cp .env.local.example .env.local
+# Registrar la clave de OpenAI para la función Edge
+supabase secrets set OPENAI_API_KEY=tu_clave
 ```
 
 ## Estructura del proyecto
@@ -17,6 +19,7 @@ cp .env.local.example .env.local
 - `lib/` - Clientes de Supabase y OpenAI.
 - `components/` - Componentes reutilizables de interfaz.
 - `middleware.ts` - Protección de rutas según sesión y roles.
+- `supabase/functions/askAI` - Función Edge que procesa preguntas con OpenAI.
 ## Desarrollo
 
 ```bash
