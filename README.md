@@ -14,7 +14,7 @@ supabase secrets set OPENAI_API_KEY=tu_clave
 ## Estructura del proyecto
 
 - `app/` - Rutas principales de la aplicación (`login`, `asistente`, `admin`, `recursos`).
-- `app/asistente` - Vista del asistente virtual que muestra el historial de preguntas y permite enviar nuevas.
+- `app/asistente` - Vista del asistente virtual que muestra el historial de preguntas y permite enviar nuevas invocando la función Edge `askAI`.
 - `app/auth/callback` - Ruta de redirección posterior al inicio de sesión.
 - `lib/` - Clientes de Supabase y OpenAI.
 - `components/` - Componentes reutilizables de interfaz.

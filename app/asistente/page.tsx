@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -17,6 +17,7 @@ export default function AsistentePage() {
   const [status, setStatus] = useState("");
   const [userName, setUserName] = useState("");
   const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -49,39 +50,40 @@ export default function AsistentePage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!question.trim()) return;
+    const prompt = question.trim();
+    if (!prompt) return;
 
     setStatus("Procesando respuesta...");
 
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session) {
-      setStatus("Error de autenticación");
-      return;
-    }
-
-    const { error } = await supabase.from("messages").insert({
-      usuario_id: session.user.id,
-      pregunta: question,
-      respuesta: null,
-      categoria: "general",
-      created_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      setStatus("Error al guardar la pregunta.");
-      return;
-    }
-
+    // add the user's question immediately
     setMessages([
       ...messages,
-      { pregunta: question, respuesta: null, created_at: new Date().toISOString() },
+      { pregunta: prompt, respuesta: null, created_at: new Date().toISOString() },
     ]);
     setQuestion("");
+
+    const { data, error } = await supabase.functions.invoke("askAI", {
+      body: { prompt },
+    });
+
+    if (error || !data) {
+      setStatus(
+        "Hubo un problema al obtener la respuesta. Intenta nuevamente."
+      );
+      return;
+    }
+
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[updated.length - 1].respuesta = data.answer;
+      return updated;
+    });
+    setStatus("");
   };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -93,6 +95,7 @@ export default function AsistentePage() {
             {msg.respuesta && <p className="mt-2">🤖 {msg.respuesta}</p>}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
         <input
